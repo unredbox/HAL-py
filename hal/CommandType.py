@@ -30,7 +30,7 @@ class CommandType(Enum):
     Enum for Command Types
     """
 
-    RESET = CommandTypeBase(address=AddressSelector.PICKER, command="X", command_wait=60000)
+    RESET = CommandTypeBase(address=AddressSelector.SERIAL, command="X", command_wait=60000)
     QLM_ENGAGE = CommandTypeBase(address=AddressSelector.AUX, command="M1", status_bit=6, reset_command="K1", wait_pause_time=500)
     QLM_DISENGAGE = CommandTypeBase(address=AddressSelector.AUX, command="L1", status_bit=5, reset_command="K1", wait_pause_time=500)
     QLM_HALT = CommandTypeBase(address=AddressSelector.AUX, command="K1")
