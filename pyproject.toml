@@ -1,5 +1,5 @@
 [project]
-name = "redboxhal"
+name = "hal"
 version = "0.1.0"
 description = "An open source, cross platform, Hardware Abstraction Layer for Redbox kiosks"
 authors = [{ name = "Puyodead1", email = "puyodead@proton.me" }]
