@@ -1,3 +1,4 @@
+import argparse
 import time
 
 from hal.CommandType import CommandType
