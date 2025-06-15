@@ -1,6 +1,8 @@
+import time
 from enum import Enum
 
-from hal.Common import AddressSelector
+from hal.Common import AddressSelector, CommandResponse, ErrorCode, PortResponse
+from hal.Port import Port
 
 
 class CommandTypeBase:
@@ -16,13 +18,108 @@ class CommandTypeBase:
         status_bit: int = -1,
         reset_command: str = None,
         wait_pause_time: int = -1,
+        operation_timeout: int = -1,
     ):
-        self.address = address
         self.command = command
-        self.command_wait = command_wait
-        self.status_bit = status_bit
+        self.address = address
         self.reset_command = reset_command
-        self.wait_pause_time = wait_pause_time
+        self.wait_pause_time = wait_pause_time if (wait_pause_time != -1) else 0
+        self.operation_timeout = operation_timeout
+        self.status_bit = None
+        if status_bit != -1:
+            self.status_bit = status_bit
+            if self.operation_timeout == 0 or self.wait_pause_time == 0:
+                print(
+                    "CommandType {} has status_bit set but timeout = {} and wait_pause_time = {}".format(
+                        self.command, self.operation_timeout, self.wait_pause_time
+                    )
+                )
+        self.command_wait = command_wait if (command_wait != -1) else 8000
+
+    def execute(self, port: Port) -> PortResponse:
+        """
+        Executes the command on the specified port.
+        """
+        if self.command is None:
+            raise ValueError("Command cannot be None")
+
+        response = CommandResponse()
+
+        # send the command and wait for response
+        r = self.send_command(self.command, port)
+
+        # if we have a status bit, we need to wait for it
+        try:
+            if response.comm_error or self.status_bit is None:
+                response = r
+            else:
+                r.error = self.wait_for_command(port)
+                if response.timeout and not self.reset_command is None:
+                    cmds = self.reset_command.split(",")
+                    for cmd in cmds:
+                        self.send_command(cmd, port)
+                response = r
+        finally:
+            print("[CommandTypeBase] execution finished; {} returned {}".format(self.command, r))
+
+        return response
+
+    def send_command(self, cmd: str, port: Port) -> CommandResponse:
+        """
+        Sends the command to the specified port.
+        """
+        # the main response
+        response = CommandResponse()
+
+        # send the selector
+        r = port.send_recv(self.address.value, 5000)
+        response.error = ErrorCode.COMMUNICATION_ERROR if not r.success else None
+        if not r.success:
+            print(f"[CommandTypeBase] selector {self.address.name} failed with error: {r.error.name}")
+            return response
+
+        # send the command
+        r = port.send_recv(cmd, self.command_wait)
+        response.error = ErrorCode.COMMUNICATION_ERROR if not r.success else None
+        if r.success:
+            response.raw_response = r.raw_response
+            response.response = r.response
+            response.response_valid = r.response_valid
+        else:
+            print(f"[CommandTypeBase] command {cmd} failed with error: {r.error.name}")
+            return response
+
+        return response
+
+    def wait_for_command(self, port: Port) -> ErrorCode:
+        print("[WaitForCommand] start")
+
+        start = time.time()
+        error_code = None
+
+        try:
+            while True:
+                time.sleep(self.wait_pause_time / 1000)  # convert ms to seconds
+                response = self.send_command("S", port)
+                if response.comm_error:
+                    print("[WaitForCommand] communication error")
+                    return ErrorCode.COMMUNICATION_ERROR
+
+                print(f"[WaitForCommand] response: {response.response}")
+
+                if not response.is_bit_set(self.status_bit):
+                    print(f"[WaitForCommand] status bit {self.status_bit} not set")
+                    return None
+
+                # check if we have passed operation timeout
+                if (time.time() - start) * 1000 > self.operation_timeout:
+                    error_code = ErrorCode.TIMEOUT
+                    break
+
+        finally:
+            print("[WaitForCommand] end")
+
+        return error_code
 
 
 class CommandType(Enum):

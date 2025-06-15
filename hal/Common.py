@@ -97,15 +97,29 @@ class ErrorCode(Enum):
     STORE_ERROR = 48
 
 
-class CommandResponse:
+class PortResponse:
     response_valid: bool = False
     response: str = None
+    raw_response: bytes = None
     error: ErrorCode = None
+
+    def is_bit_set(self, bit: int) -> bool:
+        """
+        Check if the specified bit is set in the response.
+        """
+        if self.error is not None:
+            return False
+
+        if len(self.response) < bit + 1:
+            print(f"[PortResponse] is_bit_set: response is {self.response}; too short")
+            return False
+
+        return self.response[bit] == "1"
 
     # getter
     @property
     def comm_error(self) -> bool:
-        return self.error == ErrorCode.COMM_ERROR
+        return self.error == ErrorCode.COMMUNICATION_ERROR
 
     @property
     def timeout(self) -> bool:
@@ -116,7 +130,8 @@ class CommandResponse:
         return self.response_valid and self.error is None
 
     def __str__(self):
-        if self.response_valid:
-            return f"Response: {self.response}, Error: {self.error.name if self.error else 'None'}"
-        else:
-            return f"Response: None, Error: {self.error.name if self.error else 'None'}"
+        return f"Response: {self.response}, Error: {self.error.name if self.error else 'None'}"
+
+
+# create alias for PortResponse as CommandResponse
+CommandResponse = PortResponse
