@@ -135,3 +135,11 @@ class PortResponse:
 
 # create alias for PortResponse as CommandResponse
 CommandResponse = PortResponse
+
+
+class TrackState(Enum):
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+
+    def __str__(self):
+        return self.name.lower()

@@ -18,7 +18,7 @@ class CommandTypeBase:
         status_bit: int = -1,
         reset_command: str = None,
         wait_pause_time: int = -1,
-        operation_timeout: int = -1,
+        operation_timeout: int = 0,
     ):
         self.command = command
         self.address = address
@@ -30,7 +30,7 @@ class CommandTypeBase:
             self.status_bit = status_bit
             if self.operation_timeout == 0 or self.wait_pause_time == 0:
                 print(
-                    "CommandType {} has status_bit set but timeout = {} and wait_pause_time = {}".format(
+                    "CommandType {} has status_bit set but operation_timeout = {} and wait_pause_time = {}".format(
                         self.command, self.operation_timeout, self.wait_pause_time
                     )
                 )
