@@ -1,4 +1,5 @@
 from enum import Enum
+from time import perf_counter
 
 
 class ControlBoard(Enum):
@@ -138,8 +139,17 @@ CommandResponse = PortResponse
 
 
 class TrackState(Enum):
-    OPEN = "OPEN"
-    CLOSED = "CLOSED"
+    OPEN = 0
+    CLOSE = 1
 
     def __str__(self):
         return self.name.lower()
+
+
+class ExecutionTimer:
+    def __init__(self):
+        self.start = perf_counter()
+
+    @property
+    def elapsed_milliseconds(self):
+        return (perf_counter() - self.start) * 1000

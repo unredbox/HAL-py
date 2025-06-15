@@ -1,7 +1,7 @@
 import time
 from enum import Enum
 
-from hal.Common import AddressSelector, CommandResponse, ErrorCode, PortResponse
+from hal.Common import AddressSelector, CommandResponse, ErrorCode, ExecutionTimer, PortResponse
 from hal.Port import Port
 
 
@@ -94,27 +94,29 @@ class CommandTypeBase:
     def wait_for_command(self, port: Port) -> ErrorCode:
         print("[WaitForCommand] start")
 
-        start = time.time()
+        time_span = self.wait_pause_time / 1000
         error_code = None
 
         try:
-            while True:
-                time.sleep(self.wait_pause_time / 1000)  # convert ms to seconds
-                response = self.send_command("S", port)
-                if response.comm_error:
-                    print("[WaitForCommand] communication error")
-                    return ErrorCode.COMMUNICATION_ERROR
+            with ExecutionTimer() as timer:
+                while True:
+                    time.sleep(time_span)
+                    response = self.send_command("S", port)
 
-                print(f"[WaitForCommand] response: {response.response}")
+                    if response.comm_error:
+                        print("[WaitForCommand] communication error")
+                        return ErrorCode.COMMUNICATION_ERROR
 
-                if not response.is_bit_set(self.status_bit):
-                    print(f"[WaitForCommand] status bit {self.status_bit} not set")
-                    return None
+                    print(f"[WaitForCommand] response: {response.response}")
 
-                # check if we have passed operation timeout
-                if (time.time() - start) * 1000 > self.operation_timeout:
-                    error_code = ErrorCode.TIMEOUT
-                    break
+                    if not response.is_bit_set(self.status_bit):
+                        print(f"[WaitForCommand] status bit {self.status_bit} not set")
+                        return None
+
+                    # check if we have passed operation timeout
+                    if timer.elapsed_milliseconds > self.operation_timeout:
+                        error_code = ErrorCode.TIMEOUT
+                        break
 
         finally:
             print("[WaitForCommand] end")

@@ -2,6 +2,7 @@ import argparse
 import time
 
 from hal.CommandType import CommandType
+from hal.Common import TrackState
 from hal.FMEController import FMEController
 
 
@@ -48,10 +49,10 @@ def test(args):
     # call_test_command(controller, CommandType.GRIPPER_CLOSE)
     # call_test_command(controller, CommandType.GRIPPER_EXTEND)
     # call_test_command(controller, CommandType.GRIPPER_RETRACT)
-    controller.set_track(controller.TrackState.OPEN)
-    controller.set_track(controller.TrackState.CLOSE)
-    controller.set_track(controller.TrackState.OPEN)
-    controller.set_track(controller.TrackState.CLOSE)
+    controller.set_track(TrackState.OPEN)
+    controller.set_track(TrackState.CLOSE)
+    controller.set_track(TrackState.OPEN)
+    controller.set_track(TrackState.CLOSE)
     # call_test_command(controller, CommandType.VERSION_SERIAL)
     # call_test_command(controller, CommandType.VERSION_PICKER)
     # call_test_command(controller, CommandType.VERSION_AUX)
