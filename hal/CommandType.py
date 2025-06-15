@@ -98,25 +98,25 @@ class CommandTypeBase:
         error_code = None
 
         try:
-            with ExecutionTimer() as timer:
-                while True:
-                    time.sleep(time_span)
-                    response = self.send_command("S", port)
+            timer = ExecutionTimer()
+            while True:
+                time.sleep(time_span)
+                response = self.send_command("S", port)
 
-                    if response.comm_error:
-                        print("[WaitForCommand] communication error")
-                        return ErrorCode.COMMUNICATION_ERROR
+                if response.comm_error:
+                    print("[WaitForCommand] communication error")
+                    return ErrorCode.COMMUNICATION_ERROR
 
-                    print(f"[WaitForCommand] response: {response.response}")
+                print(f"[WaitForCommand] response: {response.response}")
 
-                    if not response.is_bit_set(self.status_bit):
-                        print(f"[WaitForCommand] status bit {self.status_bit} not set")
-                        return None
+                if not response.is_bit_set(self.status_bit):
+                    print(f"[WaitForCommand] status bit {self.status_bit} not set")
+                    return None
 
-                    # check if we have passed operation timeout
-                    if timer.elapsed_milliseconds > self.operation_timeout:
-                        error_code = ErrorCode.TIMEOUT
-                        break
+                # check if we have passed operation timeout
+                if timer.elapsed_milliseconds > self.operation_timeout:
+                    error_code = ErrorCode.TIMEOUT
+                    break
 
         finally:
             print("[WaitForCommand] end")

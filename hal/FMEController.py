@@ -17,18 +17,17 @@ class FMEController:
 
     def set_track(self, track_state: TrackState) -> PortResponse:
         command = CommandType.TRACK_OPEN if track_state == TrackState.OPEN else CommandType.TRACK_CLOSE
-        return self.retryable_command(command, retries=2, delay=5000)
+        return self.retryable_command(command.value, retries=2, delay=5000)
 
     def validate_response(self, response: bytes) -> bool:
         string = response.decode()
         return string != None and string != "" and (string_index(string, "OK") != -1 or string_index(string, "ERR") != -1)
 
-    def send_command(self, command: CommandType):
+    def send_command(self, command: CommandTypeBase) -> CommandResponse:
         print(f"[FMEController] Sending command: {command.value.address.name} {command.name}")
 
         response = CommandResponse()
 
-        command: CommandTypeBase = command.value
         if not self.port or not self.port.open():
             print("[FMEController] unable to open port")
             response.error = ErrorCode.COMMUNICATION_ERROR
@@ -42,14 +41,13 @@ class FMEController:
 
         return response
 
-    def retryable_command(self, command: CommandType, retries: int, delay: int):
+    def retryable_command(self, command: CommandTypeBase, retries: int, delay: int):
         response = CommandResponse()
+        command.operation_timeout = delay
 
-        for attempt in range(retries):
+        for i in range(retries):
             response = self.send_command(command)
             if response.success or response.comm_error:
                 return response
-            print(f"[FMEController] Attempt {attempt + 1} failed, retrying in {delay} ms...")
-            time.sleep(delay / 1000)
 
         return response
