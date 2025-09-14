@@ -3,7 +3,7 @@ from typing import Callable
 
 import serial
 
-from hal.Common import ErrorCode, PortResponse
+from pyhal.Common import ErrorCode, PortResponse
 
 
 class Port:

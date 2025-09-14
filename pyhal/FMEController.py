@@ -2,9 +2,9 @@ import time
 
 import serial
 
-from hal.CommandType import CommandType, CommandTypeBase
-from hal.Common import CommandResponse, ErrorCode, PortResponse, TrackState, string_index
-from hal.Port import Port
+from pyhal.CommandType import CommandType, CommandTypeBase
+from pyhal.Common import CommandResponse, ErrorCode, PortResponse, TrackState, string_index
+from pyhal.Port import Port
 
 
 class FMEController:
@@ -21,7 +21,9 @@ class FMEController:
 
     def validate_response(self, response: bytes) -> bool:
         string = response.decode()
-        return string != None and string != "" and (string_index(string, "OK") != -1 or string_index(string, "ERR") != -1)
+        return (
+            string != None and string != "" and (string_index(string, "OK") != -1 or string_index(string, "ERR") != -1)
+        )
 
     def send_command(self, command: CommandType) -> CommandResponse:
         print(f"[FMEController] Sending command: {command.value.address.name} {command.name}")
@@ -51,4 +53,6 @@ class FMEController:
             if response.success or response.comm_error:
                 return response
 
+        return response
+        return response
         return response

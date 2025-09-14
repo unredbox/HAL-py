@@ -1,8 +1,8 @@
 import time
 from enum import Enum
 
-from hal.Common import AddressSelector, CommandResponse, ErrorCode, ExecutionTimer, PortResponse
-from hal.Port import Port
+from pyhal.Common import AddressSelector, CommandResponse, ErrorCode, ExecutionTimer, PortResponse
+from pyhal.Port import Port
 
 
 class CommandTypeBase:

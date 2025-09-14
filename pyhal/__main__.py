@@ -1,9 +1,9 @@
 import argparse
 import time
 
-from hal.CommandType import CommandType
-from hal.Common import TrackState
-from hal.FMEController import FMEController
+from pyhal.CommandType import CommandType
+from pyhal.Common import TrackState
+from pyhal.FMEController import FMEController
 
 
 def call_test_command(controller: FMEController, command_type: CommandType):
